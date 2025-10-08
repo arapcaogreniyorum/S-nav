@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profesyonel Eğitim Quizi - Kodlama Desteği</title>
+    <style>
+        /* CSS kodlarımızı buraya ekleyeceğiz, şimdilik sadece temel görünüm */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #zamanlayici {
+            font-size: 1.5em;
+            color: #d9534f;
+            text-align: right;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #d9534f;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .soru-alani {
+            border-top: 2px solid #337ab7;
+            padding-top: 15px;
+        }
+        .soru {
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>20 Soruluk Karışık Sınav</h1>
+        
+        <div id="zamanlayici">Kalan Süre: 30:00</div>
+
+        <div class="soru-alani">
+            <h2>Sınav Soruları</h2>
+            
+            <div class="soru">
+                <p><strong>1. Soru:</strong> HTML ne anlama gelmektedir?</p>
+                <label><input type="radio" name="soru1" value="a"> Hyper Text Markup Language</label><br>
+                <label><input type="radio" name="soru1" value="b"> High Tech Modern Language</label><br>
+                <label><input type="radio" name="soru1" value="c"> Home Tool Multi Language</label><br>
+            </div>
+
+            <button onclick="testiBitir()">Testi Bitir ve Puanla</button>
+        </div>
+    </div>
+
+    <script>
+        function testiBitir() {
+            alert("Testi bitirme butonuna tıkladın! Hesaplama fonksiyonunu buraya ekleyeceğiz.");
+        }
+    </script>
+</body>
+</html>
