@@ -9,7 +9,7 @@ const sorular = [
             d: "Farklı konularda pek çok şiir kaleme aldığına",
             e: "Şiirlerinin okuyucuyla bağ kurduğuna"
         },
-        dogruCevap: "a"
+        dogruCevap: "d" // Görüntülediğim kaynağa göre D olması gerekiyor.
     },
     {
         soru: "2. (I) Geleneksel sanatlarımızdan olan çini, kil ve toprağın belirli bir sıcaklıkta pişirilmesiyle elde edilir. (II) Sonraki aşamada ise bu hamur, geleneksel motiflerle süslenir. (III) Geçmişten günümüze kadar gelen çini sanatı, özellikle cami, köşk ve saray gibi yapılarda mimariyi tamamlayıcı unsur olarak kullanılmıştır. (IV) Yapıldığı dönemin sanat anlayışını yansıtan çiniler, üzerindeki desenler ve renklerle mimari eserlere canlılık katar. (V) Çininin bu canlılığı ve dayanıklılığı, onun uzun ömürlü olmasını sağlamıştır. Bu parçadaki numaralanmış cümlelerle ilgili olarak aşağıdakilerden hangisi yanlıştır?",
@@ -224,7 +224,8 @@ const sorular = [
 
 // --- DURUM DEĞİŞKENLERİ ---
 let mevcutSoruIndex = 0; // Hangi soruda olduğumuzu tutar
-const kullaniciCevaplari = new Array(sorular.length).fill(null); // Kullanıcının cevaplarını tutar
+// Başlangıçta 20 (sorular.length) elemanlı, içi null ile dolu bir dizi oluşturur
+const kullaniciCevaplari = new Array(sorular.length).fill(null); 
 
 // --- DOM ELEMENTLERİ ---
 const aktifSoruContainer = document.getElementById('aktif-soru-container');
@@ -241,14 +242,14 @@ function soruyuGoster(index) {
         const soruBilgisi = sorular[index];
         const soruNumarasi = index + 1;
         
-        // Soru sayacını güncelle
+        // Soru sayacını güncelle (1. Soru / 20)
         soruSayacElementi.textContent = soruNumarasi;
 
         let secenekHTML = '';
         
         // Seçenekleri oluştur
         for (const secenekHarfi in soruBilgisi.secenekler) {
-            // Radio butonunu oluştur
+            // Cevabı daha önce kaydettiğimiz diziden kontrol et
             const isChecked = kullaniciCevaplari[index] === secenekHarfi ? 'checked' : '';
             
             secenekHTML += `
@@ -262,14 +263,16 @@ function soruyuGoster(index) {
         // Container içeriğini güncelle
         aktifSoruContainer.innerHTML = `
             <p><strong>${soruNumarasi}. Soru:</strong> ${soruBilgisi.soru}</p>
-            ${secenekHTML}
+            <form id="soruFormu">${secenekHTML}</form>
         `;
         
         // Buton görünürlüğünü ayarla
         if (mevcutSoruIndex === sorular.length - 1) {
+            // Son soruda: İleri butonunu gizle, Bitir butonunu göster
             ileriButonu.style.display = 'none';
             bitirButonu.style.display = 'block';
         } else {
+            // Diğer sorularda: İleri butonunu göster, Bitir butonunu gizle
             ileriButonu.style.display = 'block';
             bitirButonu.style.display = 'none';
         }
@@ -287,14 +290,17 @@ function sonrakiSoru() {
     if (mevcutSoruIndex < sorular.length - 1) {
         soruyuGoster(mevcutSoruIndex + 1);
     } 
+    // Not: Son sorudayken bu fonksiyon zaten çalışmaz, testiBitir butonu gözükür.
 }
 
 
-// --- 3. PUANLAMA VE BİTİRME FONKSİYONU (GÜNCELLENDİ) ---
+// --- 3. PUANLAMA VE BİTİRME FONKSİYONU (SÜRE BİTİMİNDE OTOMATİK ÇALIŞIR) ---
 function testiBitir(süreBitti = false) {
-    // Son sorunun cevabını kaydet
-    const sonSeciliCevapElementi = document.querySelector('input[name="aktifSoruCevap"]:checked');
-    kullaniciCevaplari[sorular.length - 1] = sonSeciliCevapElementi ? sonSeciliCevapElementi.value : null;
+    // Test Bitir butonuna basıldığında son sorunun cevabını kaydet
+    if (!süreBitti) {
+        const sonSeciliCevapElementi = document.querySelector('input[name="aktifSoruCevap"]:checked');
+        kullaniciCevaplari[sorular.length - 1] = sonSeciliCevapElementi ? sonSeciliCevapElementi.value : null;
+    }
 
     if (typeof intervalId !== 'undefined') {
         clearInterval(intervalId); // Zamanlayıcıyı durdur
@@ -331,13 +337,13 @@ function testiBitir(süreBitti = false) {
     soruAlani.style.display = 'none';
 
     // Zamanlayıcı durumunu güncelle
+    const zamanlayiciElement = document.getElementById('zamanlayici');
     zamanlayiciElement.textContent = süreBitti ? "SÜRE DOLDU - TEST BİTTİ" : "TEST BİTİRİLDİ";
 
     alert(`Sınavınız tamamlandı! Doğru: ${dogruSayisi}, Yanlış: ${yanlisSayisi}, Boş: ${bosSayisi}. Ham Puanınız: ${hamPuan}`);
 }
 
 // --- 4. ZAMANLAYICI KODU ---
-const zamanlayiciElement = document.getElementById('zamanlayici');
 let kalanSureSaniye = 30 * 60; // 30 dakika
 let intervalId; 
 
@@ -348,13 +354,13 @@ function sureyiGuncelle() {
     const formatliDakika = String(dakika).padStart(2, '0');
     const formatliSaniye = String(saniye).padStart(2, '0');
 
-    zamanlayiciElement.textContent = `Kalan Süre: ${formatliDakika}:${formatliSaniye}`;
+    document.getElementById('zamanlayici').textContent = `Kalan Süre: ${formatliDakika}:${formatliSaniye}`;
 
     kalanSureSaniye--;
 
     if (kalanSureSaniye < 0) {
         clearInterval(intervalId); 
-        zamanlayiciElement.textContent = "SÜRE DOLDU!";
+        // Süre bittiğinde otomatik bitirme ve puanlama
         testiBitir(true); 
     }
 }
