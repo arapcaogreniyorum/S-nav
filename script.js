@@ -9,7 +9,7 @@ const sorular = [
             d: "Farklı konularda pek çok şiir kaleme aldığına",
             e: "Şiirlerinin okuyucuyla bağ kurduğuna"
         },
-        dogruCevap: "d" // Görüntülediğim kaynağa göre D olması gerekiyor.
+        dogruCevap: "d" 
     },
     {
         soru: "2. (I) Geleneksel sanatlarımızdan olan çini, kil ve toprağın belirli bir sıcaklıkta pişirilmesiyle elde edilir. (II) Sonraki aşamada ise bu hamur, geleneksel motiflerle süslenir. (III) Geçmişten günümüze kadar gelen çini sanatı, özellikle cami, köşk ve saray gibi yapılarda mimariyi tamamlayıcı unsur olarak kullanılmıştır. (IV) Yapıldığı dönemin sanat anlayışını yansıtan çiniler, üzerindeki desenler ve renklerle mimari eserlere canlılık katar. (V) Çininin bu canlılığı ve dayanıklılığı, onun uzun ömürlü olmasını sağlamıştır. Bu parçadaki numaralanmış cümlelerle ilgili olarak aşağıdakilerden hangisi yanlıştır?",
@@ -223,9 +223,11 @@ const sorular = [
 ];
 
 // --- DURUM DEĞİŞKENLERİ ---
-let mevcutSoruIndex = 0; // Hangi soruda olduğumuzu tutar
-// Başlangıçta 20 (sorular.length) elemanlı, içi null ile dolu bir dizi oluşturur
-const kullaniciCevaplari = new Array(sorular.length).fill(null); 
+let mevcutSoruIndex = 0; 
+let kullaniciCevaplari = new Array(sorular.length).fill(null); 
+let kalanSureSaniye = 30 * 60; // 30 dakika
+let intervalId;
+let sinavDevamEdiyor = true;
 
 // --- DOM ELEMENTLERİ ---
 const aktifSoruContainer = document.getElementById('aktif-soru-container');
@@ -234,22 +236,22 @@ const ileriButonu = document.getElementById('ileri-butonu');
 const bitirButonu = document.getElementById('bitir-butonu');
 const sonucAlani = document.querySelector('.sonuc-alani');
 const soruAlani = document.querySelector('.soru-alani');
+const zamanlayiciElement = document.getElementById('zamanlayici');
 
 // --- 1. SORUYU YÜKLEME FONKSİYONU ---
 function soruyuGoster(index) {
+    if (!sinavDevamEdiyor) return; // Sınav bitmişse yeni soru gösterme
+
     if (index >= 0 && index < sorular.length) {
         mevcutSoruIndex = index;
         const soruBilgisi = sorular[index];
         const soruNumarasi = index + 1;
         
-        // Soru sayacını güncelle (1. Soru / 20)
         soruSayacElementi.textContent = soruNumarasi;
 
         let secenekHTML = '';
         
-        // Seçenekleri oluştur
         for (const secenekHarfi in soruBilgisi.secenekler) {
-            // Cevabı daha önce kaydettiğimiz diziden kontrol et
             const isChecked = kullaniciCevaplari[index] === secenekHarfi ? 'checked' : '';
             
             secenekHTML += `
@@ -260,7 +262,6 @@ function soruyuGoster(index) {
             `;
         }
         
-        // Container içeriğini güncelle
         aktifSoruContainer.innerHTML = `
             <p><strong>${soruNumarasi}. Soru:</strong> ${soruBilgisi.soru}</p>
             <form id="soruFormu">${secenekHTML}</form>
@@ -268,11 +269,9 @@ function soruyuGoster(index) {
         
         // Buton görünürlüğünü ayarla
         if (mevcutSoruIndex === sorular.length - 1) {
-            // Son soruda: İleri butonunu gizle, Bitir butonunu göster
             ileriButonu.style.display = 'none';
             bitirButonu.style.display = 'block';
         } else {
-            // Diğer sorularda: İleri butonunu göster, Bitir butonunu gizle
             ileriButonu.style.display = 'block';
             bitirButonu.style.display = 'none';
         }
@@ -290,21 +289,22 @@ function sonrakiSoru() {
     if (mevcutSoruIndex < sorular.length - 1) {
         soruyuGoster(mevcutSoruIndex + 1);
     } 
-    // Not: Son sorudayken bu fonksiyon zaten çalışmaz, testiBitir butonu gözükür.
 }
 
 
-// --- 3. PUANLAMA VE BİTİRME FONKSİYONU (SÜRE BİTİMİNDE OTOMATİK ÇALIŞIR) ---
+// --- 3. PUANLAMA VE BİTİRME FONKSİYONU ---
 function testiBitir(süreBitti = false) {
+    if (!sinavDevamEdiyor) return; // Zaten bitmişse tekrar çalıştırma
+
+    sinavDevamEdiyor = false; // Sınavı bitir olarak işaretle
+
     // Test Bitir butonuna basıldığında son sorunun cevabını kaydet
-    if (!süreBitti) {
+    if (!süreBitti && mevcutSoruIndex === sorular.length - 1) {
         const sonSeciliCevapElementi = document.querySelector('input[name="aktifSoruCevap"]:checked');
         kullaniciCevaplari[sorular.length - 1] = sonSeciliCevapElementi ? sonSeciliCevapElementi.value : null;
     }
 
-    if (typeof intervalId !== 'undefined') {
-        clearInterval(intervalId); // Zamanlayıcıyı durdur
-    }
+    clearInterval(intervalId); // Zamanlayıcıyı durdur
 
     let dogruSayisi = 0;
     let yanlisSayisi = 0;
@@ -322,55 +322,65 @@ function testiBitir(süreBitti = false) {
         }
     });
 
-    // Ham puan hesaplaması (ÖSYM tarzı 4 yanlış 1 doğru götürür)
     const netDogru = dogruSayisi - (yanlisSayisi * yanlisGötürmeKatsayısı);
     const hamPuan = Math.max(0, (netDogru / sorular.length) * 100).toFixed(2); 
 
-    // Sonuçları ekrana yazdırma
     document.getElementById('dogruSayisi').textContent = dogruSayisi;
     document.getElementById('yanlisSayisi').textContent = yanlisSayisi;
     document.getElementById('bosSayisi').textContent = bosSayisi;
     document.getElementById('hamPuan').textContent = hamPuan;
 
-    // Sonuç alanını göster ve sınav alanını gizle
     sonucAlani.style.display = 'block';
     soruAlani.style.display = 'none';
 
-    // Zamanlayıcı durumunu güncelle
-    const zamanlayiciElement = document.getElementById('zamanlayici');
     zamanlayiciElement.textContent = süreBitti ? "SÜRE DOLDU - TEST BİTTİ" : "TEST BİTİRİLDİ";
 
-    alert(`Sınavınız tamamlandı! Doğru: ${dogruSayisi}, Yanlış: ${yanlisSayisi}, Boş: ${bosSayisi}. Ham Puanınız: ${hamPuan}`);
+    alert(`Sınavınız tamamlandı! Ham Puanınız: ${hamPuan}`);
 }
 
 // --- 4. ZAMANLAYICI KODU ---
-let kalanSureSaniye = 30 * 60; // 30 dakika
-let intervalId; 
-
 function sureyiGuncelle() {
+    if (!sinavDevamEdiyor) return;
+
     const dakika = Math.floor(kalanSureSaniye / 60);
     const saniye = kalanSureSaniye % 60;
 
     const formatliDakika = String(dakika).padStart(2, '0');
     const formatliSaniye = String(saniye).padStart(2, '0');
 
-    document.getElementById('zamanlayici').textContent = `Kalan Süre: ${formatliDakika}:${formatliSaniye}`;
+    zamanlayiciElement.textContent = `Kalan Süre: ${formatliDakika}:${formatliSaniye}`;
 
     kalanSureSaniye--;
 
     if (kalanSureSaniye < 0) {
-        clearInterval(intervalId); 
-        // Süre bittiğinde otomatik bitirme ve puanlama
         testiBitir(true); 
     }
 }
 
-// --- BAŞLATICI KISIM ---
-document.addEventListener('DOMContentLoaded', () => {
-    // Sayfa yüklendiğinde ilk soruyu göster
+// --- 5. YENİDEN BAŞLATMA FONKSİYONU ---
+function testiTekrarBaslat() {
+    // 1. Değişkenleri sıfırla
+    mevcutSoruIndex = 0;
+    kullaniciCevaplari = new Array(sorular.length).fill(null);
+    kalanSureSaniye = 30 * 60;
+    sinavDevamEdiyor = true;
+
+    // 2. Ekranları değiştir
+    soruAlani.style.display = 'block';
+    sonucAlani.style.display = 'none';
+    
+    // 3. İlk soruyu yükle
     soruyuGoster(0);
 
-    // Geri sayımı başlatan kısım.
+    // 4. Zamanlayıcıyı yeniden başlat
+    intervalId = setInterval(sureyiGuncelle, 1000); 
+    sureyiGuncelle();
+}
+
+// --- BAŞLATICI KISIM ---
+document.addEventListener('DOMContentLoaded', () => {
+    // Sayfa yüklendiğinde ilk soruyu göster ve zamanlayıcıyı başlat
+    soruyuGoster(0);
     intervalId = setInterval(sureyiGuncelle, 1000); 
     sureyiGuncelle();
 });
