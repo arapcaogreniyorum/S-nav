@@ -39,42 +39,157 @@
             border: 1px solid #ccc;
             border-radius: 4px;
         }
+        .sonuc-alani {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f9f9c5;
+            border: 2px solid #ffc107;
+            border-radius: 4px;
+            font-size: 1.2em;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>20 Soruluk Karışık Sınav</h1>
         <div id="zamanlayici">Kalan Süre: 30:00</div> 
-
-
         <div class="soru-alani">
             <h2>Sınav Soruları</h2>
-            
-            <div class="soru">
-                <p><strong>1. Soru:</strong> HTML ne anlama gelmektedir?</p>
-                <label><input type="radio" name="soru1" value="a"> Hyper Text Markup Language</label><br>
-                <label><input type="radio" name="soru1" value="b"> High Tech Modern Language</label><br>
-                <label><input type="radio" name="soru1" value="c"> Home Tool Multi Language</label><br>
-            </div>
-
             <button onclick="testiBitir()">Testi Bitir ve Puanla</button>
+        </div>
+        <div class="sonuc-alani" style="display:none;">
+            <h3>Sınav Sonuçlarınız</h3>
+            <p>Doğru Cevap Sayısı: <span id="dogruSayisi">0</span></p>
+            <p>Yanlış Cevap Sayısı: <span id="yanlisSayisi">0</span></p>
+            <p>Boş Bırakılan Soru Sayısı: <span id="bosSayisi">0</span></p>
+            <p>Ham Puanınız: <span id="hamPuan">0</span></p>
         </div>
     </div>
 
-</body>
-</html>
-
     <script>
-        // TEK VE DOĞRU testiBitir fonksiyonu
-        function testiBitir() {
-            alert("Testi bitirme butonuna tıkladın! Hesaplama fonksiyonunu buraya ekleyeceğiz.");
+        // --- 1. SORU VERİSİ ---
+        const sorular = [
+            {
+                soru: "HTML ne anlama gelmektedir?",
+                secenekler: {
+                    a: "Hyper Text Markup Language",
+                    b: "High Tech Modern Language",
+                    c: "Home Tool Multi Language"
+                },
+                dogruCevap: "a"
+            },
+            {
+                soru: "CSS ne için kullanılır?",
+                secenekler: {
+                    a: "Veritabanı yönetimi",
+                    b: "Web sayfalarını stilize etme",
+                    c: "Sunucu tarafı programlama"
+                },
+                dogruCevap: "b"
+            },
+            {
+                soru: "JavaScript'in yaygın bir kullanım alanı nedir?",
+                secenekler: {
+                    a: "İşletim sistemi geliştirme",
+                    b: "Web tarayıcılarında etkileşim ekleme",
+                    c: "Mobil uygulama derleme"
+                },
+                dogruCevap: "b"
+            }
+            // Lütfen diğer soruları da buraya bu formatta ekle!
+        ];
+
+        // --- 2. SORULARI DİNAMİK YÜKLEME FONKSİYONU ---
+        const soruAlani = document.querySelector('.soru-alani');
+        const bitirButonu = document.querySelector('button[onclick="testiBitir()"]');
+        const sonucAlani = document.querySelector('.sonuc-alani');
+
+        function sorulariYukle() {
+            let yuklenecekHTML = '';
             
-            // Eğer süre dolduysa, testi bitirme mantığını buraya ekleyeceğiz
-            // Şu an için sadece uyarı veriyor.
+            sorular.forEach((soruBilgisi, index) => {
+                const soruNumarasi = index + 1;
+                let secenekHTML = '';
+                
+                for (const secenekHarfi in soruBilgisi.secenekler) {
+                    secenekHTML += `
+                        <label>
+                            <input type="radio" name="soru${soruNumarasi}" value="${secenekHarfi}">
+                            ${soruBilgisi.secenekler[secenekHarfi]}
+                        </label><br>
+                    `;
+                }
+                
+                yuklenecekHTML += `
+                    <div class="soru" data-soru-index="${index}">
+                        <p><strong>${soruNumarasi}. Soru:</strong> ${soruBilgisi.soru}</p>
+                        ${secenekHTML}
+                    </div>
+                `;
+            });
+            
+            // Oluşturulan HTML'i, bitir butonunun hemen öncesine ekle
+            bitirButonu.insertAdjacentHTML('beforebegin', yuklenecekHTML);
         }
 
-        // ZAMANLAYICI KODU
-        let kalanSureSaniye = 30 * 60; 
+        // Sayfa yüklendiğinde soruları hemen yükle
+        sorulariYukle();
+
+
+        // --- 3. PUANLAMA VE BİTİRME FONKSİYONU (GÜNCELLENDİ) ---
+        function testiBitir(süreBitti = false) {
+            // Eğer süre bittiyse ve zaten bitirildiyse tekrar çalıştırma
+            if (süreBitti) {
+                clearInterval(intervalId); // Zamanlayıcıyı durdur
+            }
+
+            let dogruSayisi = 0;
+            let yanlisSayisi = 0;
+            let bosSayisi = 0;
+            const yanlisGötürmeKatsayısı = 0.25; // 4 yanlış 1 doğruyu götürsün (ÖSYM kuralı)
+
+            sorular.forEach((soruBilgisi, index) => {
+                const soruNumarasi = index + 1;
+                // Kullanıcının seçtiği cevabı bul
+                const seciliCevapElementi = document.querySelector(`input[name="soru${soruNumarasi}"]:checked`);
+
+                if (!seciliCevapElementi) {
+                    bosSayisi++;
+                } else {
+                    const kullaniciCevabi = seciliCevapElementi.value;
+                    if (kullaniciCevabi === soruBilgisi.dogruCevap) {
+                        dogruSayisi++;
+                    } else {
+                        yanlisSayisi++;
+                    }
+                }
+            });
+
+            // Ham puan hesaplaması (Yanlışların Düzeltilmesi)
+            const netDogru = dogruSayisi - (yanlisSayisi * yanlisGötürmeKatsayısı);
+            const hamPuan = Math.max(0, netDogru * (100 / sorular.length)).toFixed(2); // Her sorunun puanını alıp 100 üzerinden puanlama
+
+            // Sonuçları ekrana yazdırma
+            document.getElementById('dogruSayisi').textContent = dogruSayisi;
+            document.getElementById('yanlisSayisi').textContent = yanlisSayisi;
+            document.getElementById('bosSayisi').textContent = bosSayisi;
+            document.getElementById('hamPuan').textContent = hamPuan;
+
+            // Sonuç alanını göster
+            sonucAlani.style.display = 'block';
+            
+            // Sınav alanını gizle (isteğe bağlı)
+            soruAlani.style.display = 'none';
+
+            // Zamanlayıcıyı durdur ve son durumunu yaz
+            clearInterval(intervalId); 
+            document.getElementById('zamanlayici').textContent = süreBitti ? "SÜRE DOLDU - TEST BİTTİ" : "TEST BİTİRİLDİ";
+
+            alert(`Sınavınız tamamlandı! Doğru: ${dogruSayisi}, Yanlış: ${yanlisSayisi}, Boş: ${bosSayisi}.`);
+        }
+
+        // --- 4. ZAMANLAYICI KODU ---
+        let kalanSureSaniye = 30 * 60; // 30 dakika
         const zamanlayiciElement = document.getElementById('zamanlayici');
         let intervalId; 
 
@@ -92,8 +207,8 @@
             if (kalanSureSaniye < 0) {
                 clearInterval(intervalId); 
                 zamanlayiciElement.textContent = "SÜRE DOLDU!";
-                alert("Sınav süreniz doldu! Test otomatik olarak sonlandırılıyor.");
-                testiBitir(); 
+                // süreBitti parametresini true göndererek puanlama yap
+                testiBitir(true); 
             }
         }
 
@@ -101,8 +216,5 @@
         intervalId = setInterval(sureyiGuncelle, 1000); 
         sureyiGuncelle();
     </script>
-</body>
-</html>
-
 </body>
 </html>
