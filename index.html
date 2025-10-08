@@ -65,6 +65,54 @@
         function testiBitir() {
             alert("Testi bitirme butonuna tıkladın! Hesaplama fonksiyonunu buraya ekleyeceğiz.");
         }
+    <script>
+        // Hali hazırda var olan fonksiyonun altına ekle
+        function testiBitir() {
+            alert("Testi bitirme butonuna tıkladın! Hesaplama fonksiyonunu buraya ekleyeceğiz.");
+        }
+
+        // YENİ EKLENECEK ZAMANLAYICI KODU
+        
+        // Sınav süresi: 30 dakika * 60 saniye = 1800 saniye
+        let kalanSureSaniye = 30 * 60; 
+        const zamanlayiciElement = document.getElementById('zamanlayici');
+        let intervalId; // setInterval'ı durdurabilmek için bir değişken tanımlıyoruz
+
+        function sureyiGuncelle() {
+            // Dakika ve saniyeleri hesapla
+            const dakika = Math.floor(kalanSureSaniye / 60);
+            const saniye = kalanSureSaniye % 60;
+
+            // Tek haneli sayıların önüne sıfır ekleyerek "05:09" gibi görünmesini sağla
+            const formatliDakika = String(dakika).padStart(2, '0');
+            const formatliSaniye = String(saniye).padStart(2, '0');
+
+            // HTML elementini güncelle
+            zamanlayiciElement.textContent = `Kalan Süre: ${formatliDakika}:${formatliSaniye}`;
+
+            // Süreyi 1 saniye azalt
+            kalanSureSaniye--;
+
+            // Süre 0'a ulaştığında veya altına indiğinde
+            if (kalanSureSaniye < 0) {
+                clearInterval(intervalId); // Zamanlayıcıyı durdur
+                zamanlayiciElement.textContent = "SÜRE DOLDU!";
+                alert("Sınav süreniz doldu! Test otomatik olarak sonlandırılıyor.");
+                // Testi bitirme fonksiyonunu çağırabiliriz
+                testiBitir(); 
+            }
+        }
+
+        // Her saniye `sureyiGuncelle` fonksiyonunu çağır
+        intervalId = setInterval(sureyiGuncelle, 1000); 
+
+        // Sayfa yüklendiğinde ilk gösterimi yap
+        sureyiGuncelle();
+    </script>
+</body>
+</html>
+
+
     </script>
 </body>
 </html>
