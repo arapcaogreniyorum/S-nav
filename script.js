@@ -222,44 +222,80 @@ const sorular = [
     }
 ];
 
-// --- DOM Elementleri ---
-const soruAlani = document.querySelector('.soru-alani');
-const bitirButonu = document.querySelector('button[onclick="testiBitir()"]');
-const sonucAlani = document.querySelector('.sonuc-alani');
-const zamanlayiciElement = document.getElementById('zamanlayici');
+// --- DURUM DEĞİŞKENLERİ ---
+let mevcutSoruIndex = 0; // Hangi soruda olduğumuzu tutar
+const kullaniciCevaplari = new Array(sorular.length).fill(null); // Kullanıcının cevaplarını tutar
 
-// --- Soruları Dinamik Yükleme Fonksiyonu ---
-function sorulariYukle() {
-    let yuklenecekHTML = '';
-    
-    sorular.forEach((soruBilgisi, index) => {
+// --- DOM ELEMENTLERİ ---
+const aktifSoruContainer = document.getElementById('aktif-soru-container');
+const soruSayacElementi = document.getElementById('soru-sayac');
+const ileriButonu = document.getElementById('ileri-butonu');
+const bitirButonu = document.getElementById('bitir-butonu');
+const sonucAlani = document.querySelector('.sonuc-alani');
+const soruAlani = document.querySelector('.soru-alani');
+
+// --- 1. SORUYU YÜKLEME FONKSİYONU ---
+function soruyuGoster(index) {
+    if (index >= 0 && index < sorular.length) {
+        mevcutSoruIndex = index;
+        const soruBilgisi = sorular[index];
         const soruNumarasi = index + 1;
+        
+        // Soru sayacını güncelle
+        soruSayacElementi.textContent = soruNumarasi;
+
         let secenekHTML = '';
         
-        // 5 seçenekli yapıyı desteklemek için döngü güncel
+        // Seçenekleri oluştur
         for (const secenekHarfi in soruBilgisi.secenekler) {
+            // Radio butonunu oluştur
+            const isChecked = kullaniciCevaplari[index] === secenekHarfi ? 'checked' : '';
+            
             secenekHTML += `
-                <label>
-                    <input type="radio" name="soru${soruNumarasi}" value="${secenekHarfi}">
+                <input type="radio" id="secenek-${secenekHarfi}" name="aktifSoruCevap" value="${secenekHarfi}" ${isChecked}>
+                <label for="secenek-${secenekHarfi}" class="secenek-label">
                     ${secenekHarfi.toUpperCase()}: ${soruBilgisi.secenekler[secenekHarfi]}
-                </label><br>
+                </label>
             `;
         }
         
-        yuklenecekHTML += `
-            <div class="soru" data-soru-index="${index}">
-                <p><strong>${soruNumarasi}. Soru:</strong> ${soruBilgisi.soru}</p>
-                ${secenekHTML}
-            </div>
+        // Container içeriğini güncelle
+        aktifSoruContainer.innerHTML = `
+            <p><strong>${soruNumarasi}. Soru:</strong> ${soruBilgisi.soru}</p>
+            ${secenekHTML}
         `;
-    });
-    
-    // Oluşturulan HTML'i, bitir butonunun hemen öncesine ekle
-    bitirButonu.insertAdjacentHTML('beforebegin', yuklenecekHTML);
+        
+        // Buton görünürlüğünü ayarla
+        if (mevcutSoruIndex === sorular.length - 1) {
+            ileriButonu.style.display = 'none';
+            bitirButonu.style.display = 'block';
+        } else {
+            ileriButonu.style.display = 'block';
+            bitirButonu.style.display = 'none';
+        }
+    }
 }
 
-// --- Puanlama ve Bitirme Fonksiyonu ---
+
+// --- 2. CEVABI KAYDET VE SONRAKİ SORUYA GEÇ ---
+function sonrakiSoru() {
+    // 1. Mevcut cevabı kaydet
+    const seciliCevapElementi = document.querySelector('input[name="aktifSoruCevap"]:checked');
+    kullaniciCevaplari[mevcutSoruIndex] = seciliCevapElementi ? seciliCevapElementi.value : null;
+
+    // 2. Bir sonraki soruya geç
+    if (mevcutSoruIndex < sorular.length - 1) {
+        soruyuGoster(mevcutSoruIndex + 1);
+    } 
+}
+
+
+// --- 3. PUANLAMA VE BİTİRME FONKSİYONU (GÜNCELLENDİ) ---
 function testiBitir(süreBitti = false) {
+    // Son sorunun cevabını kaydet
+    const sonSeciliCevapElementi = document.querySelector('input[name="aktifSoruCevap"]:checked');
+    kullaniciCevaplari[sorular.length - 1] = sonSeciliCevapElementi ? sonSeciliCevapElementi.value : null;
+
     if (typeof intervalId !== 'undefined') {
         clearInterval(intervalId); // Zamanlayıcıyı durdur
     }
@@ -269,25 +305,19 @@ function testiBitir(süreBitti = false) {
     let bosSayisi = 0;
     const yanlisGötürmeKatsayısı = 0.25; 
 
-    sorular.forEach((soruBilgisi, index) => {
-        const soruNumarasi = index + 1;
-        const seciliCevapElementi = document.querySelector(`input[name="soru${soruNumarasi}"]:checked`);
-
-        if (!seciliCevapElementi) {
+    // Kaydedilen cevapları kontrol et
+    kullaniciCevaplari.forEach((cevap, index) => {
+        if (cevap === null) {
             bosSayisi++;
+        } else if (cevap === sorular[index].dogruCevap) {
+            dogruSayisi++;
         } else {
-            const kullaniciCevabi = seciliCevapElementi.value;
-            if (kullaniciCevabi === soruBilgisi.dogruCevap) {
-                dogruSayisi++;
-            } else {
-                yanlisSayisi++;
-            }
+            yanlisSayisi++;
         }
     });
 
     // Ham puan hesaplaması (ÖSYM tarzı 4 yanlış 1 doğru götürür)
     const netDogru = dogruSayisi - (yanlisSayisi * yanlisGötürmeKatsayısı);
-    // Her sorunun puanını alıp 100 üzerinden puanlama
     const hamPuan = Math.max(0, (netDogru / sorular.length) * 100).toFixed(2); 
 
     // Sonuçları ekrana yazdırma
@@ -306,7 +336,8 @@ function testiBitir(süreBitti = false) {
     alert(`Sınavınız tamamlandı! Doğru: ${dogruSayisi}, Yanlış: ${yanlisSayisi}, Boş: ${bosSayisi}. Ham Puanınız: ${hamPuan}`);
 }
 
-// --- Zamanlayıcı Kodu ---
+// --- 4. ZAMANLAYICI KODU ---
+const zamanlayiciElement = document.getElementById('zamanlayici');
 let kalanSureSaniye = 30 * 60; // 30 dakika
 let intervalId; 
 
@@ -328,10 +359,10 @@ function sureyiGuncelle() {
     }
 }
 
-// --- Başlatıcı Kısım ---
+// --- BAŞLATICI KISIM ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Sayfa yüklendiğinde soruları hemen yükle
-    sorulariYukle();
+    // Sayfa yüklendiğinde ilk soruyu göster
+    soruyuGoster(0);
 
     // Geri sayımı başlatan kısım.
     intervalId = setInterval(sureyiGuncelle, 1000); 
