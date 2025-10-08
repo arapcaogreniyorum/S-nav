@@ -33,7 +33,8 @@
             border-top: 2px solid #337ab7;
             padding-top: 15px;
         }
-        .soru {
+        /* Soruyu çevreleyen div'i netleştiriyoruz */
+        #aktif-soru-container {
             margin-bottom: 25px;
             padding: 15px;
             border: 1px solid #ccc;
@@ -48,31 +49,27 @@
             font-size: 1.2em;
         }
 
-        /* --- YENİ EKLENEN RADYO BUTON VE BUTON STİLLERİ --- */
+        /* --- RADYO BUTON VE BUTON STİLLERİ --- */
 
-        /* Radio Butonları İçin Stil */
-        .soru label {
-            display: block; /* Her seçeneği yeni bir satıra alır */
+        .secenek-label {
+            display: block;
             margin: 8px 0;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
             transition: background-color 0.2s;
-            cursor: pointer; /* Fare imlecini el işaretine çevirir */
+            cursor: pointer;
         }
 
-        /* Fare üzerine gelince arka plan rengini değiştirme */
-        .soru label:hover {
+        .secenek-label:hover {
             background-color: #e9ecef;
         }
 
-        /* Seçili radio butonu için görsel geri bildirim */
-        .soru input[type="radio"]:checked + label {
-            background-color: #d1ecf1; /* Açık mavi arka plan */
-            border-color: #bee5eb; /* Daha belirgin çerçeve */
+        input[type="radio"]:checked + .secenek-label {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
         }
 
-        /* Testi Bitir Butonu Stili */
         button {
             background-color: #337ab7;
             color: white;
@@ -92,12 +89,20 @@
 </head>
 <body>
     <div class="container">
-        <h1>20 Soruluk Karışık Sınav</h1>
+        <h1>20 Soruluk Genel Yetenek Sınavı</h1>
         <div id="zamanlayici">Kalan Süre: 30:00</div> 
+
         <div class="soru-alani">
-            <h2>Sınav Soruları</h2>
-            <button onclick="testiBitir()">Testi Bitir ve Puanla</button>
+            <h2><span id="soru-sayac">1</span>. Soru / 20</h2>
+            
+            <div id="aktif-soru-container">
+                Yükleniyor...
+            </div>
+
+            <button id="ileri-butonu" onclick="sonrakiSoru()">Sonraki Soru</button>
+            <button id="bitir-butonu" onclick="testiBitir()" style="display:none;">Testi Bitir ve Puanla</button>
         </div>
+
         <div class="sonuc-alani" style="display:none;">
             <h3>Sınav Sonuçlarınız</h3>
             <p>Doğru Cevap Sayısı: <span id="dogruSayisi">0</span></p>
