@@ -1,5 +1,5 @@
 // --- TÜM SORULARIN HAVUZU (Görsel Dosya Adı ve Doğru Cevap) ---
-// Bu dizi, soru1.png'den soru60.png'a kadar tüm görsellerin cevaplarını tutar.
+// Cevap anahtarınız burada eşleştirilmiştir.
 const TUM_SORULAR = [
     { gorselDosyaAdi: "soru1.png", dogruCevap: "e" }, 
     { gorselDosyaAdi: "soru2.png", dogruCevap: "d" }, 
@@ -190,7 +190,7 @@ function testiBitir(süreBitti = false) {
         const dogruCevap = aktifSınavSorulari[index].dogruCevap; 
         
         if (cevap === null) {
-            bosSayusu++;
+            bosSayisi++;
         } else if (cevap === dogruCevap) {
             dogruSayisi++;
         } else {
