@@ -33,7 +33,8 @@
             border-top: 2px solid #337ab7;
             padding-top: 15px;
         }
-        /* Soruyu çevreleyen div'i netleştiriyoruz */
+        
+        /* Tek sorunun görünür olacağı alanı biçimlendiriyoruz */
         #aktif-soru-container {
             margin-bottom: 25px;
             padding: 15px;
@@ -65,11 +66,16 @@
             background-color: #e9ecef;
         }
 
+        /* input gizli olduğu için komşu etiket stilini güncelliyoruz */
+        input[type="radio"] {
+            display: none; /* Radyo butonunun kendisini gizle */
+        }
+        /* Seçili radyo butonu için label stilini güncelliyoruz */
         input[type="radio"]:checked + .secenek-label {
             background-color: #d1ecf1;
             border-color: #bee5eb;
         }
-
+        
         button {
             background-color: #337ab7;
             color: white;
