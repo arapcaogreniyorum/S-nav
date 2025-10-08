@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profesyonel Eğitim Quizi - Kodlama Desteği</title>
+    <title>Görsel Odaklı Rastgele Sınav (20/60) - Kodlama Desteği</title>
     <style>
         /* CSS kodlarımızın tamamı burada */
         body {
@@ -37,9 +37,46 @@
         #aktif-soru-container {
             margin-bottom: 25px;
             padding: 15px;
-            border: 1px solid #ccc;
             border-radius: 4px;
         }
+        
+        #soru-gorseli {
+             max-width: 100%;
+             height: auto;
+             display: block; 
+             margin: 0 auto 20px auto; 
+        }
+
+        /* --- RADYO BUTON VE BUTON STİLLERİ --- */
+
+        .secenek-label {
+            display: inline-block; 
+            width: 15%; 
+            text-align: center;
+            margin: 5px 10px;
+            padding: 15px 10px; 
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            transition: background-color 0.2s, border-color 0.2s;
+            cursor: pointer;
+            font-size: 1.2em; 
+            font-weight: bold;
+        }
+
+        .secenek-label:hover {
+            background-color: #e9ecef;
+        }
+
+        input[type="radio"] {
+            display: none; 
+        }
+        
+        input[type="radio"]:checked + .secenek-label {
+            background-color: #337ab7; 
+            border-color: #286090;
+            color: white; 
+        }
+        
         .sonuc-alani {
             margin-top: 30px;
             padding: 20px;
@@ -49,31 +86,6 @@
             font-size: 1.2em;
         }
 
-        /* --- RADYO BUTON VE BUTON STİLLERİ --- */
-
-        .secenek-label {
-            display: block;
-            margin: 8px 0;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-            cursor: pointer;
-        }
-
-        .secenek-label:hover {
-            background-color: #e9ecef;
-        }
-
-        input[type="radio"] {
-            display: none; /* Radyo butonunun kendisini gizle */
-        }
-        
-        input[type="radio"]:checked + .secenek-label {
-            background-color: #d1ecf1;
-            border-color: #bee5eb;
-        }
-        
         button {
             background-color: #337ab7;
             color: white;
@@ -93,14 +105,14 @@
 </head>
 <body>
     <div class="container">
-        <h1>20 Soruluk Genel Yetenek Sınavı</h1>
+        <h1>Görsel Odaklı Rastgele Sınav (20/60)</h1>
         <div id="zamanlayici">Kalan Süre: 30:00</div> 
 
         <div class="soru-alani">
             <h2><span id="soru-sayac">1</span>. Soru / 20</h2>
             
             <div id="aktif-soru-container">
-                Yükleniyor...
+                Sınav hazırlanıyor...
             </div>
 
             <button id="ileri-butonu" onclick="sonrakiSoru()">Sonraki Soru</button>
@@ -114,7 +126,7 @@
             <p>Boş Bırakılan Soru Sayısı: <span id="bosSayisi">0</span></p>
             <p>Ham Puanınız: <span id="hamPuan">0</span></p>
             
-            <button onclick="testiTekrarBaslat()">Sınavı Tekrar Başlat</button>
+            <button onclick="testiTekrarBaslat()">Yeni Sınav Başlat (Rastgele 20 Soru)</button>
         </div>
     </div>
 
