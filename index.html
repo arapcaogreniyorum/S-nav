@@ -34,7 +34,6 @@
             padding-top: 15px;
         }
         
-        /* Tek sorunun görünür olacağı alanı biçimlendiriyoruz */
         #aktif-soru-container {
             margin-bottom: 25px;
             padding: 15px;
@@ -66,11 +65,10 @@
             background-color: #e9ecef;
         }
 
-        /* input gizli olduğu için komşu etiket stilini güncelliyoruz */
         input[type="radio"] {
             display: none; /* Radyo butonunun kendisini gizle */
         }
-        /* Seçili radyo butonu için label stilini güncelliyoruz */
+        
         input[type="radio"]:checked + .secenek-label {
             background-color: #d1ecf1;
             border-color: #bee5eb;
@@ -115,6 +113,8 @@
             <p>Yanlış Cevap Sayısı: <span id="yanlisSayisi">0</span></p>
             <p>Boş Bırakılan Soru Sayısı: <span id="bosSayisi">0</span></p>
             <p>Ham Puanınız: <span id="hamPuan">0</span></p>
+            
+            <button onclick="testiTekrarBaslat()">Sınavı Tekrar Başlat</button>
         </div>
     </div>
 
